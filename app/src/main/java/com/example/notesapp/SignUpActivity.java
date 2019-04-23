@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
@@ -19,6 +20,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
     ProgressBar progressBar;
     EditText editTextEmail, editTextPassword,editTextConfirmPassword;
+
 
     private FirebaseAuth mAuth;
 
@@ -62,7 +64,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         if (password.length() < 7) {
-            editTextPassword.setError("Minimum lenght of password should be 7");
+            editTextPassword.setError("Minimum length of password should be 7");
             editTextPassword.requestFocus();
             return;
         }

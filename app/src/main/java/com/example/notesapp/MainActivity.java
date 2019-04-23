@@ -1,22 +1,36 @@
 package com.example.notesapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     //vars
-    private ArrayList<String> mDates= new ArrayList<>();
+    private ArrayList<String> mTitles= new ArrayList<>();
+    private ArrayList<String> mContents= new ArrayList<>();
     private ArrayList<String> mImageUrls= new ArrayList<>();
+    FloatingActionButton mButton;
+    DatabaseReference mFirebaseReference;
+    private String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,38 +39,47 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Started");
 
         initImageBitmaps();
+
+        mButton=findViewById(R.id.newButton);
+        mButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent= new Intent(MainActivity.this, NoteActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
     private void initImageBitmaps(){
         Log.d(TAG, "preparing bitmaps");
 
-        mImageUrls.add("https://c1.staticflickr.com/5/4636/25316407448_de5fbf183d_o.jpg");
-        Date date1= new Date(2019, 4, 1);
-        mDates.add(date1.toString());
+        //if the user does not have an Id yet, covering all bases
+        if (userId==null){
+            return;
+        }
 
-        mImageUrls.add("https://i.redd.it/tpsnoz5bzo501.jpg");
-        mDates.add(date1.toString());
+        //get list of notes from Firebase
+        mFirebaseReference= FirebaseDatabase.getInstance().getReference("Users/"+userId+"/Note");
+        mFirebaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                //fill the Title and Content arrays
+                for (DataSnapshot dst: dataSnapshot.getChildren()){
+                    mTitles.add(dst.getKey());
+                    mContents.add(dst.getValue().toString());
+                    Log.d(TAG, "Key: " +dst.getKey());
+                    Log.d(TAG, "Value: "+dst.getValue().toString());
+                    //adds a picture for each Note
+                    mImageUrls.add("https://c1.staticflickr.com/5/4636/25316407448_de5fbf183d_o.jpg");
+                }
+            }
 
-        mImageUrls.add("https://i.redd.it/qn7f9oqu7o501.jpg");
-        mDates.add(date1.toString());
-
-        mImageUrls.add("https://i.redd.it/j6myfqglup501.jpg");
-        mDates.add(date1.toString());
-
-        mImageUrls.add("https://i.redd.it/0h2gm1ix6p501.jpg");
-        mDates.add(date1.toString());
-
-        mImageUrls.add("https://i.redd.it/k98uzl68eh501.jpg");
-        mDates.add(date1.toString());
-
-        mImageUrls.add("https://i.redd.it/glin0nwndo501.jpg");
-        mDates.add(date1.toString());
-
-        mImageUrls.add("https://i.redd.it/obx4zydshg601.jpg");
-        mDates.add(date1.toString());
-
-        mImageUrls.add("https://i.imgur.com/ZcLLrkY.jpg");
-        mDates.add(date1.toString());
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, "Database Error has occurred.");
+            }
+        });
 
         Log.d(TAG,"added to lists");
 
@@ -66,9 +89,10 @@ public class MainActivity extends AppCompatActivity {
     private void initRecyclerView(){
         Log.d(TAG, "init recyclerView");
         RecyclerView recyclerView= findViewById(R.id.recyclerView);
-        MyAdapter adapter= new MyAdapter(mDates,mImageUrls,this);
+        MyAdapter adapter= new MyAdapter(mTitles, mImageUrls,this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        Log.d(TAG,"Successful init recyclerView");
     }
 
 }

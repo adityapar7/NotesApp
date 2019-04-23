@@ -1,6 +1,7 @@
 package com.example.notesapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -37,7 +39,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int i) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, final int i) {
         Log.d(TAG, "onViewBinder called");
 
         Glide.with(mContext)
@@ -52,7 +54,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             public void onClick(View v) {
                 Log.d(TAG,"clicked on image");
 
-                Toast.makeText(mContext,mDates.get(i), Toast.LENGTH_SHORT);
+                Toast.makeText(mContext, mDates.get(i), Toast.LENGTH_SHORT).show();
+                viewHolder.goToNote();
 
             }
         });
@@ -67,13 +70,23 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         CircleImageView image;
         TextView date;
         RelativeLayout parentLayout;
+        private final Context context;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            context=itemView.getContext();
+
             image=itemView.findViewById(R.id.image);
             date=itemView.findViewById(R.id.date);
             parentLayout=itemView.findViewById(R.id.parent_layout);
         }
+
+        public void goToNote(){
+            final Intent intent;
+            intent =  new Intent(context, NoteActivity.class);
+            context.startActivity(intent);
+        }
     }
+
 
 }
