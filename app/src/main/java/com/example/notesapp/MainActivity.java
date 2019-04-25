@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
+    private static final String TAG2="Main.initRecyclerView()";
     //vars
     private ArrayList<String> mTitles= new ArrayList<>();
     private ArrayList<String> mContents= new ArrayList<>();
@@ -38,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.d(TAG, "Started");
 
+        //clear the titles and Contents ArrayList so we don't get multiple of the same note on RecyclerView
+        mTitles.clear();
+        mContents.clear();
+
         initImageBitmaps();
 
         mButton=findViewById(R.id.newButton);
@@ -48,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
     }
 
     private void initImageBitmaps(){
@@ -60,21 +63,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //get list of notes from Firebase
-        mFirebaseReference= FirebaseDatabase.getInstance().getReference("Users/"+userId+"/Note");
+        mFirebaseReference= FirebaseDatabase.getInstance().getReference("Users/"+userId+"/Notes");
         mFirebaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //fill the Title and Content arrays
                 for (DataSnapshot dst: dataSnapshot.getChildren()){
+                    //adds keys and content values to the arrays
                     mTitles.add(dst.getKey());
                     mContents.add(dst.getValue().toString());
-                    Log.d(TAG, "Key: " +dst.getKey());
-                    Log.d(TAG, "Value: "+dst.getValue().toString());
+
+                    Log.d(TAG, "Key: " + dst.getKey());
+                    Log.d(TAG, "Value: " + dst.getValue().toString());
+
                     //adds a picture for each Note
                     mImageUrls.add("https://c1.staticflickr.com/5/4636/25316407448_de5fbf183d_o.jpg");
                 }
-            }
+                Log.d(TAG,"Size of titles: " + mTitles.size());
+                Log.d(TAG,"Size of contents: " + mContents.size());
+                Log.d(TAG, "ArrayList of Titles: "+ mTitles.toString());
+                Log.d(TAG, "ArrayList of Contents: "+ mContents.toString());
 
+                initRecyclerView(mTitles,mImageUrls,mContents);
+            }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.d(TAG, "Database Error has occurred.");
@@ -83,16 +94,25 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG,"added to lists");
 
-        initRecyclerView();
-    }
 
-    private void initRecyclerView(){
+
+    }
+    //Create the recycler view
+    private void initRecyclerView(ArrayList<String> mTitles, ArrayList<String> mImageUrls, ArrayList<String> mContents){
         Log.d(TAG, "init recyclerView");
         RecyclerView recyclerView= findViewById(R.id.recyclerView);
-        MyAdapter adapter= new MyAdapter(mTitles, mImageUrls,this);
+        MyAdapter adapter= new MyAdapter(mTitles, mImageUrls, mContents,this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         Log.d(TAG,"Successful init recyclerView");
+
+
+
+        Log.d(TAG2,"Size of titles: " + mTitles.size());
+        Log.d(TAG2,"Size of contents: " + mContents.size());
+        Log.d(TAG2,"Context: " + this.toString());
+        Log.d(TAG2, "ArrayList of Titles: "+ mTitles.toString());
+        Log.d(TAG2, "ArrayList of Contents: "+ mContents.toString());
     }
 
 }

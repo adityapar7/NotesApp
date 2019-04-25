@@ -22,11 +22,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     private ArrayList<String> mDates;
     private ArrayList<String> mImages;
+    private ArrayList<String> mContent;
     private Context mContext;
 
-    public MyAdapter(ArrayList<String> mDates, ArrayList<String> mImages, Context mContext) {
+    public MyAdapter(ArrayList<String> mDates, ArrayList<String> mImages, ArrayList<String> mContent, Context mContext) {
         this.mDates = mDates;
         this.mImages = mImages;
+        this.mContent=mContent;
         this.mContext = mContext;
     }
 
@@ -47,16 +49,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 .load(mImages.get(i))
                 .into(viewHolder.image);//load into imageView
 
-        viewHolder.date.setText(mDates.get(i));
+        //set the Content of note as what you see on the recycler View Holder
+        String modContent=mContent.get(i);
+        viewHolder.date.setText(modContent);
 
         viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG,"clicked on image");
 
-                Toast.makeText(mContext, mDates.get(i), Toast.LENGTH_SHORT).show();
-                viewHolder.goToNote();
-
+                Toast.makeText(mContext, "Clicked", Toast.LENGTH_SHORT).show();
+                Intent intent=new Intent(mContext, NoteActivity.class);
+                intent.putExtra("Key", mDates.get(i));
+                intent.putExtra("Content", mContent.get(i));
+                Log.d(TAG, "Key is this: " + mDates.get(i));
+                Log.d(TAG, "Content is this: "+ mContent.get(i));
+                Log.d(TAG, "Context is this: "+ mContext);
+                //change the activity, passing the Key and the Content to the new Activity
+                mContext.startActivity(intent);
             }
         });
     }
@@ -66,27 +76,16 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         return mDates.size();
     }
 
-    public class ViewHolder  extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder{
         CircleImageView image;
         TextView date;
         RelativeLayout parentLayout;
-        private final Context context;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            context=itemView.getContext();
-
             image=itemView.findViewById(R.id.image);
             date=itemView.findViewById(R.id.date);
             parentLayout=itemView.findViewById(R.id.parent_layout);
         }
-
-        public void goToNote(){
-            final Intent intent;
-            intent =  new Intent(context, NoteActivity.class);
-            context.startActivity(intent);
-        }
     }
-
-
 }
