@@ -38,10 +38,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.d(TAG, "Started");
 
-        //clear the titles and Contents ArrayList so we don't get multiple of the same note on RecyclerView
-        mTitles.clear();
-        mContents.clear();
-
         initImageBitmaps();
 
         mButton=findViewById(R.id.newButton);
@@ -62,11 +58,15 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        //get list of notes from Firebase
+        //get list of notes from FireBase
         mFirebaseReference= FirebaseDatabase.getInstance().getReference("Users/"+userId+"/Notes");
         mFirebaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                //clear the titles and Contents ArrayList so we don't get multiple of the same note on RecyclerView
+                mTitles.clear();
+                mContents.clear();
+
                 //fill the Title and Content arrays
                 for (DataSnapshot dst: dataSnapshot.getChildren()){
                     //adds keys and content values to the arrays
@@ -105,8 +105,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         Log.d(TAG,"Successful init recyclerView");
-
-
 
         Log.d(TAG2,"Size of titles: " + mTitles.size());
         Log.d(TAG2,"Size of contents: " + mContents.size());

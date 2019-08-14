@@ -50,9 +50,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 .into(viewHolder.image);//load into imageView
 
         //set the Content of note as what you see on the recycler View Holder
-        String modContent=mContent.get(i);
-        viewHolder.date.setText(modContent);
-
+        if (mContent.get(i).length()>10) {
+            String modContent=mContent.get(i).substring(0,10)+"...";
+            viewHolder.date.setText(modContent);
+        }
+        else{
+            viewHolder.date.setText(mContent.get(i));
+        }
+        //if a specific item is clicked
         viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

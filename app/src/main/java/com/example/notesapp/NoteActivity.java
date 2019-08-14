@@ -22,9 +22,9 @@ public class NoteActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
 
-    EditText mDate;
     EditText mContent;
     Button mButton;
+    Button mDeleteButton;
 
     private String key;
 
@@ -56,8 +56,9 @@ public class NoteActivity extends AppCompatActivity {
         final String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
         Log.d(TAG, "User ID is "+ userId);
 
-        //declare the button
+        //declare the buttons
         mButton=findViewById(R.id.button);
+        mDeleteButton=findViewById(R.id.delete);
 
         //when the button is clicked, it will submit the note to the firebase and then change the activity to
         //Main Activity, the recycler view of notes
@@ -65,29 +66,52 @@ public class NoteActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //define contents/titles
-                mDate=findViewById(R.id.title);
                 mContent=findViewById(R.id.content);
 
                 //holds the content and the date
-                String title= mDate.getText().toString().trim();
                 String content= mContent.getText().toString().trim();
 
                 Log.d(TAG, "content has been entered");
-                Log.d(TAG, "Title: "+ title);
                 Log.d(TAG, "Content: " + content);
 
                 //method that will submit the Note changes/new Notes to Firebase
-                submit(userId, title, content);
+                submit(userId, content);
 
                 //change the intent back to main activity after the note is saved
                 Intent intent= new Intent(NoteActivity.this, MainActivity.class);
                 startActivity(intent);
             }
         });
+        //if the delete button is pressed
+        mDeleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDatabase.child("Users").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if(!dataSnapshot.child(userId).child("Notes").hasChild(key)){
+                            //change the intent back to main activity if the note is not yet saved to database
+                            Intent intent= new Intent(NoteActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            return;
+                        }
+                        mDatabase.child("Users").child(userId).child("Notes").child(key).removeValue();
+                        Intent intent= new Intent(NoteActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        return;
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        });
     }
 
-    //method that submits a NEW NOTE to Firebase
-    private void submit(final String userId, final String title, final String content) {
+    //method that submits a NEW NOTE to FireBase
+    private void submit(final String userId, final String content) {
         Log.d(TAG, "new note has been created");
 
         //will add a user if needed, but is mainly for adding new notes to users
@@ -99,13 +123,13 @@ public class NoteActivity extends AppCompatActivity {
                 if (dataSnapshot.hasChild(userId)){
                     Log.d(TAG, "User exists");
                     thing="hello";
-                }
-
-                //checks if the current note is already in the database
-                if (dataSnapshot.child(userId).child("Notes").hasChild(key)){
-                    updateNote(userId, key, content);
-                    Log.d(TAG, "Note has been successfully updated.");
-                    return;
+                    //checks if the current note is already in the database
+                    Log.d(TAG,"got to this point");
+                    if (key!=null&&dataSnapshot.child(userId).child("Notes").hasChild(key)){
+                        updateNote(userId, key, content);
+                        Log.d(TAG, "Note has been successfully updated.");
+                        return;
+                    }
                 }
 
                 Log.d(TAG,"thing is : "+ thing);
@@ -141,7 +165,7 @@ public class NoteActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d(TAG,"Submit method failed");
             }
         });
     }
@@ -152,13 +176,13 @@ public class NoteActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //if the note key does not exist
-                if (!dataSnapshot.hasChild(key)){
+                if (!dataSnapshot.child(userID).child("Notes").hasChild(key)){
                     Log.d(TAG, "Entered updateNote even though the note doesn't exist");
                     return;
                 }
 
                 //updates the content at the specified note location in the database
-                mDatabase.child("Users/"+userID+"/Notes/"+key+"/").setValue(content);
+                mDatabase.child("Users/"+userID+"/Notes/"+key).setValue(content);
                 Log.d(TAG,"Existing note updated");
             }
 
